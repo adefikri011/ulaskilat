@@ -1,0 +1,27 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Client {
+  id              String      @id @default(cuid())
+  name            String      
+  slug            String      @unique 
+  googlePlaceId   String      
+  scanCount       Int         @default(0) 
+  secretToken     String      @default(cuid()) 
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  scanLogs        ScanLog[]
+}
+
+model ScanLog {
+  id              String @id @default(cuid())
+  clientId        String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
