@@ -2,11 +2,18 @@
 'use client';
 
 import { Home, MessageSquare, RefreshCw, Store, User } from 'lucide-react';
+import { usePathname } from 'next/navigation'; // <--- 1. Import usePathname
 import { useEffect, useState } from 'react';
 
 export default function BottomNav() {
+  const pathname = usePathname(); // <--- 2. Ambil URL saat ini
   const [active, setActive] = useState<'home' | 'templates' | 'store' | 'profile'>('home');
   const [refreshing, setRefreshing] = useState(false);
+
+  // 3. Jika sedang berada di halaman admin, jangan tampilkan apa-apa
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,7 +46,6 @@ export default function BottomNav() {
     <div className="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 z-50">
       <div className="mx-auto max-w-sm bg-[#141416]/95 backdrop-blur-2xl border border-white/[0.08] rounded-[28px] py-2 px-3 flex items-center justify-between shadow-2xl">
 
-        {/* Tombol Home */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className={`p-3 rounded-xl transition-colors ${active === 'home' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
@@ -48,7 +54,6 @@ export default function BottomNav() {
           <Home className="w-5 h-5 stroke-[1.75]" />
         </button>
 
-        {/* Tombol Template Ulasan */}
         <button
           onClick={() => document.getElementById('review-templates-section')?.scrollIntoView({ behavior: 'smooth' })}
           className={`p-3 rounded-xl transition-colors ${active === 'templates' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
@@ -57,7 +62,6 @@ export default function BottomNav() {
           <MessageSquare className="w-5 h-5 stroke-[1.75]" />
         </button>
 
-        {/* Tombol Tengah (Refresh) */}
         <button
           onClick={handleRefresh}
           disabled={refreshing}
@@ -67,7 +71,6 @@ export default function BottomNav() {
           <RefreshCw className={`w-5 h-5 stroke-[2] ${refreshing ? 'animate-spin' : ''}`} />
         </button>
 
-        {/* Tombol Toko (Sekarang Berfungsi) */}
         <button
           onClick={() => document.getElementById('store-info-section')?.scrollIntoView({ behavior: 'smooth' })}
           className={`p-3 rounded-xl transition-colors ${active === 'store' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
@@ -76,7 +79,6 @@ export default function BottomNav() {
           <Store className="w-5 h-5 stroke-[1.75]" />
         </button>
 
-        {/* Tombol Profil (Sekarang Berfungsi) */}
         <button
           onClick={() => document.getElementById('profile-info-section')?.scrollIntoView({ behavior: 'smooth' })}
           className={`p-3 rounded-xl transition-colors ${active === 'profile' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
