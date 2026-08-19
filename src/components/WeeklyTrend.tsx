@@ -1,47 +1,67 @@
-interface DayData {
+import { BarChart3, Clock, TrendingUp } from 'lucide-react';
+
+interface DailyData {
   label: string;
   count: number;
-  isToday?: boolean;
+  isToday: boolean;
 }
 
-export default function WeeklyTrend({ data }: { data: DayData[] }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
-  const hasActivity = data.some((d) => d.count > 0);
-  const total = data.reduce((sum, d) => sum + d.count, 0);
+interface WeeklyTrendProps {
+  data: DailyData[];
+  peakHour?: number;
+  peakCount?: number;
+}
+
+export default function WeeklyTrend({ data, peakHour = 0, peakCount = 0 }: WeeklyTrendProps) {
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-sm font-medium text-neutral-200">Tren 7 Hari Terakhir</h2>
-        <span className="text-[11px] text-neutral-500 font-mono">{total} tap</span>
-      </div>
+    <div className="space-y-6">
+      {/* Kartu Utama: Tren 7 Hari Terakhir */}
+      <div className="p-6 rounded-2xl bg-neutral-900/40 border border-neutral-800/80 backdrop-blur-sm space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-violet-400 stroke-[1.75]" />
+            <h2 className="text-sm font-medium text-white">Tren Interaksi 7 Hari Terakhir</h2>
+          </div>
+          <span className="text-xs font-mono text-neutral-500 bg-neutral-800/50 px-2.5 py-1 rounded-lg">
+            Realtime
+          </span>
+        </div>
 
-      {hasActivity ? (
-        <div className="flex items-end justify-between gap-2 h-24">
-          {data.map((d, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2">
-              <div className="w-full flex flex-col items-center justify-end h-16">
-                {d.count > 0 && (
-                  <span className="text-[10px] text-neutral-500 mb-1 tabular-nums">{d.count}</span>
-                )}
+        {/* Visualisasi Grafik Batang */}
+        <div className="grid grid-cols-7 gap-2 items-end h-36 pt-6 pb-2 px-1 border-b border-neutral-800/60">
+          {data.map((item, index) => {
+            const heightPercent = Math.max((item.count / maxCount) * 100, 12);
+            return (
+              <div key={index} className="flex flex-col items-center gap-2 h-full justify-end group">
+                <span className="text-[10px] font-mono text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {item.count}
+                </span>
                 <div
-                  className={`w-full rounded-md transition-all ${d.isToday ? 'bg-violet-500' : 'bg-neutral-800'}`}
-                  style={{ height: `${Math.max((d.count / max) * 100, d.count > 0 ? 12 : 4)}%` }}
+                  className={`w-full rounded-t-lg transition-all duration-500 ${
+                    item.isToday
+                      ? 'bg-gradient-to-t from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20'
+                      : 'bg-neutral-800 hover:bg-neutral-700'
+                  }`}
+                  style={{ height: `${heightPercent}%` }}
                 />
+                <span className={`text-[11px] font-medium ${item.isToday ? 'text-violet-400 font-semibold' : 'text-neutral-500'}`}>
+                  {item.label}
+                </span>
               </div>
-              <span className={`text-[10px] uppercase tracking-wide ${d.isToday ? 'text-violet-400 font-medium' : 'text-neutral-600'}`}>
-                {d.label}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      ) : (
-        <div className="h-24 flex items-center justify-center px-4">
-          <p className="text-[13px] text-neutral-600 text-center leading-relaxed">
-            Belum ada aktivitas minggu ini. Pastikan kartu NFC diletakkan di area yang mudah dijangkau pelanggan.
-          </p>
+
+        {/* Keterangan Bawah Grafik */}
+        <div className="flex items-center justify-between text-xs text-neutral-400 pt-1">
+          <span>Total interaksi mingguan terekam</span>
+          <span className="text-neutral-200 font-medium">
+            Puncak tertinggi: <strong className="text-violet-400">{Math.max(...data.map(d => d.count))} scan</strong> dalam sehari
+          </span>
         </div>
-      )}
+      </div>
     </div>
   );
 }

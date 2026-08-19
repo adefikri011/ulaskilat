@@ -1,9 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { BarChart3, ShieldCheck, Calendar, Clock, TrendingUp } from 'lucide-react';
-import Sidebar from '@/components/Sidebar';
+import { BarChart3, ShieldCheck, Calendar, Clock, TrendingUp, MessageSquare, Store, Home, RefreshCw, User } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import StatCard from '@/components/StatCard';
-import WeeklyTrend from '@/components/WeeklyTrend';
 
 const prisma = new PrismaClient();
 
@@ -33,19 +30,15 @@ export default async function AnalyticsPage({
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] text-white px-4">
         <div className="p-8 border border-neutral-800 rounded-2xl bg-neutral-900/50 text-center max-w-sm">
-          <div className="w-12 h-12 rounded-xl bg-red-500/10 ring-1 ring-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-6 h-6 text-red-400 stroke-[1.5]" />
-          </div>
+          <ShieldCheck className="w-6 h-6 text-red-400 mx-auto mb-4" />
           <h1 className="text-lg font-semibold text-white mb-1">Akses Ditolak</h1>
-          <p className="text-sm text-neutral-400 leading-relaxed">
-            Halaman ini bersifat privat dan memerlukan token verifikasi yang sah.
-          </p>
+          <p className="text-sm text-neutral-400">Token verifikasi tidak valid.</p>
         </div>
       </div>
     );
   }
 
-  // --- PERIODE SAAT INI ---
+  // --- PERHITUNGAN WAKTU & STATISTIK ---
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfWeek = new Date();
@@ -57,31 +50,7 @@ export default async function AnalyticsPage({
   const monthCount = client.scanLogs.filter((log) => new Date(log.createdAt) >= startOfMonth).length;
   const totalCount = client.scanCount;
 
-  // --- PERIODE SEBELUMNYA (buat trend %) ---
-  const startOfYesterday = new Date(startOfDay);
-  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-
-  const startOfPrevWeek = new Date();
-  startOfPrevWeek.setDate(now.getDate() - 14);
-
-  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-  const yesterdayCount = client.scanLogs.filter((log) => {
-    const d = new Date(log.createdAt);
-    return d >= startOfYesterday && d < startOfDay;
-  }).length;
-
-  const prevWeekCount = client.scanLogs.filter((log) => {
-    const d = new Date(log.createdAt);
-    return d >= startOfPrevWeek && d < startOfWeek;
-  }).length;
-
-  const prevMonthCount = client.scanLogs.filter((log) => {
-    const d = new Date(log.createdAt);
-    return d >= startOfPrevMonth && d < startOfMonth;
-  }).length;
-
-  // --- DATA HARIAN 7 HARI TERAKHIR (buat chart) ---
+  // --- DATA HARIAN 7 HARI TERAKHIR ---
   const dailyCounts = Array.from({ length: 7 }).map((_, i) => {
     const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i));
     const dayEnd = new Date(dayStart);
@@ -97,95 +66,158 @@ export default async function AnalyticsPage({
     };
   });
 
+  const maxCount = Math.max(...dailyCounts.map((d) => d.count), 1);
+
+  // --- JAM TERSIBUK ---
+  const hourlyData = client.scanLogs.reduce((acc: number[], log) => {
+    const hour = new Date(log.createdAt).getHours();
+    acc[hour] = (acc[hour] || 0) + 1;
+    return acc;
+  }, Array(24).fill(0));
+
+  const peakHour = hourlyData.indexOf(Math.max(...hourlyData));
+  const peakCount = Math.max(...hourlyData);
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-neutral-200 flex font-sans selection:bg-neutral-800">
-      <Sidebar />
+    <div className="min-h-screen bg-[#0a0a0a] text-neutral-200 font-sans pb-32">
+      <main className="p-6 max-w-xl mx-auto space-y-6">
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header Toko */}
+        <div className="flex items-center justify-between pb-4 border-b border-neutral-800/60">
+          <div>
+            <h1 className="text-xl font-semibold text-white">Dashboard UlasKilat</h1>
+            <p className="text-xs text-neutral-400">Analisis performa interaksi toko</p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white">
+            <Store className="w-3.5 h-3.5 text-neutral-400" />
+            {client.name}
+          </div>
+        </div>
 
-          {/* Header */}
-          <div className="pb-6 border-b border-neutral-800/60">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+        {/* Grid Kartu Statistik */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-neutral-400 uppercase">Hari Ini</span>
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            <span className="text-2xl font-bold text-white">{todayCount}</span>
+            <p className="text-[10px] text-neutral-500 mt-0.5">Sejak pukul 00:00</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-neutral-400 uppercase">7 Hari Terakhir</span>
+              <Calendar className="w-3.5 h-3.5 text-violet-400" />
+            </div>
+            <span className="text-2xl font-bold text-white">{weekCount}</span>
+            <p className="text-[10px] text-neutral-500 mt-0.5">Performa mingguan</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-neutral-400 uppercase">Bulan Ini</span>
+              <TrendingUp className="w-3.5 h-3.5 text-sky-400" />
+            </div>
+            <span className="text-2xl font-bold text-white">{monthCount}</span>
+            <p className="text-[10px] text-neutral-500 mt-0.5">Akumulasi bulanan</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-neutral-900/40 border border-neutral-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-neutral-400 uppercase">Total Scan</span>
+              <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <span className="text-2xl font-bold text-white">{totalCount}</span>
+            <p className="text-[10px] text-neutral-500 mt-0.5">Keseluruhan waktu</p>
+          </div>
+        </div>
+
+        {/* Grafik Tren Mingguan */}
+        <div id="weekly-trend-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-medium text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-violet-400" />
+              Tren Interaksi 7 Hari Terakhir
+            </h2>
+          </div>
+          <div className="grid grid-cols-7 gap-2 items-end h-28 pt-4 pb-1">
+            {dailyCounts.map((item, index) => {
+              const heightPercent = Math.max((item.count / maxCount) * 100, 10);
+              return (
+                <div key={index} className="flex flex-col items-center gap-1.5 h-full justify-end">
+                  <span className="text-[9px] font-mono text-neutral-400">{item.count}</span>
+                  <div
+                    className={`w-full rounded-t-md ${item.isToday ? 'bg-violet-500 shadow-md shadow-violet-500/20' : 'bg-neutral-800'
+                      }`}
+                    style={{ height: `${heightPercent}%` }}
+                  />
+                  <span className={`text-[10px] ${item.isToday ? 'text-violet-400 font-bold' : 'text-neutral-500'}`}>
+                    {item.label}
                   </span>
-                  <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-emerald-400/90">
-                    Live
-                  </span>
                 </div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white">Dashboard Performa</h1>
-                <p className="text-sm text-neutral-500 mt-1.5 max-w-md">
-                  Analisis interaksi pelanggan berdasarkan periode waktu.
-                </p>
-              </div>
+              );
+            })}
+          </div>
+        </div>
 
-              <div className="flex items-center gap-3 pl-3 pr-4 py-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800 w-fit">
-                <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center text-[13px] font-semibold text-neutral-300 shrink-0">
-                  {client.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-white truncate">{client.name}</p>
-                  <p className="text-[11px] text-neutral-500 font-mono">kartu terhubung</p>
-                </div>
-              </div>
+        {/* Jam Tersibuk */}
+        <div className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800">
+          <h2 className="text-xs font-medium text-white mb-2 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-amber-400" />
+            Waktu Puncak Interaksi
+          </h2>
+          {peakCount > 0 ? (
+            <p className="text-sm text-neutral-300">
+              Jam tersibuk ada di pukul <strong className="text-white font-bold">{peakHour}:00</strong> dengan total <strong className="text-amber-400">{peakCount} scan</strong>.
+            </p>
+          ) : (
+            <p className="text-xs text-neutral-500">Belum ada cukup data.</p>
+          )}
+        </div>
+
+        {/* Template Balasan Ulasan */}
+        <div id="review-templates-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-3">
+          <h2 className="text-xs font-medium text-white flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-emerald-400" />
+            Template Balasan Ulasan Cepat
+          </h2>
+          <div className="space-y-2 pt-1 text-xs text-neutral-400">
+            <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+              <p className="font-medium text-neutral-200 mb-1">Bintang 5 (Positif):</p>
+              <p className="italic">&ldquo;Halo Kak! Terima kasih banyak atas ulasan bintang 5 dan kunjungan Anda ke toko kami.&rdquo;</p>
+            </div>
+            <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+              <p className="font-medium text-neutral-200 mb-1">Masukan / Netral:</p>
+              <p className="italic">&ldquo;Halo Kak, terima kasih atas masukannya. Kami akan terus tingkatkan kualitas pelayanan.&rdquo;</p>
             </div>
           </div>
-
-          {/* Grid Kartu Periode Analitik */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatCard
-              icon={Clock}
-              label="Hari Ini"
-              value={todayCount}
-              sublabel="Scan sejak pukul 00:00"
-              accent="amber"
-              trend={getTrend(todayCount, yesterdayCount)}
-            />
-            <StatCard
-              icon={Calendar}
-              label="7 Hari Terakhir"
-              value={weekCount}
-              sublabel="Performa mingguan"
-              accent="violet"
-              trend={getTrend(weekCount, prevWeekCount)}
-            />
-            <StatCard
-              icon={TrendingUp}
-              label="Bulan Ini"
-              value={monthCount}
-              sublabel="Akumulasi bulan berjalan"
-              accent="sky"
-              trend={getTrend(monthCount, prevMonthCount)}
-            />
-            <StatCard
-              icon={BarChart3}
-              label="Total Keseluruhan"
-              value={totalCount}
-              sublabel="Seluruh waktu aktif"
-              accent="emerald"
-            />
-          </div>
-
-          {/* Tren Mingguan */}
-          <WeeklyTrend data={dailyCounts} />
-
-          {/* Info Box */}
-          <div className="p-5 rounded-2xl bg-neutral-900/20 border border-neutral-800/60 text-sm text-neutral-400 space-y-1.5">
-            <h2 className="font-medium text-neutral-200">Tentang Statistik Ini</h2>
-            <p className="leading-relaxed">
-              Data di atas diperbarui secara otomatis setiap kali ada perangkat yang memindai atau
-              men-tap kartu NFC UlasKilat milik toko Anda.
-            </p>
-          </div>
-
         </div>
+
+        <div id="store-info-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-2">
+          <h2 className="text-xs font-medium text-white flex items-center gap-2">
+            <Store className="w-4 h-4 text-violet-400" />
+            Informasi Outlet / Toko
+          </h2>
+          <p className="text-xs text-neutral-400">
+            Kartu NFC terhubung secara aman ke sistem pemetaan Google Maps dengan slug: <strong className="text-white">{client.slug}</strong>.
+          </p>
+        </div>
+
+        <div id="profile-info-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-2">
+          <h2 className="text-xs font-medium text-white flex items-center gap-2">
+            <User className="w-4 h-4 text-emerald-400" />
+            Profil Pengelola / Merchant
+          </h2>
+          <p className="text-xs text-neutral-400">
+            Akses dashboard ini dilindungi token privat untuk memastikan hanya pemilik toko yang dapat melihat data analitik pemindaian.
+          </p>
+        </div>
+
       </main>
 
       <BottomNav />
+
     </div>
   );
 }

@@ -1,52 +1,90 @@
+// src/components/BottomNav.tsx
 'use client';
-import { useState } from 'react';
-import { BarChart3, Store, Home, RefreshCw, User } from 'lucide-react';
 
-const items = [
-  { icon: Home, label: 'Beranda' },
-  { icon: BarChart3, label: 'Statistik' },
-];
-const itemsRight = [
-  { icon: Store, label: 'Toko' },
-  { icon: User, label: 'Profil' },
-];
+import { Home, MessageSquare, RefreshCw, Store, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function BottomNav() {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState<'home' | 'templates' | 'store' | 'profile'>('home');
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + window.innerHeight / 2;
+      const templatesEl = document.getElementById('review-templates-section');
+      const storeEl = document.getElementById('store-info-section');
+      const profileEl = document.getElementById('profile-info-section');
+
+      if (profileEl && scrollPos >= profileEl.offsetTop) {
+        setActive('profile');
+      } else if (storeEl && scrollPos >= storeEl.offsetTop) {
+        setActive('store');
+      } else if (templatesEl && scrollPos >= templatesEl.offsetTop) {
+        setActive('templates');
+      } else {
+        setActive('home');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    window.location.reload();
+  };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 md:hidden z-50">
-      <div className="mx-auto max-w-sm bg-[#141416]/90 backdrop-blur-2xl border border-white/[0.08] rounded-[28px] py-2 px-3 flex items-center justify-between shadow-2xl shadow-black/40">
-        {items.map(({ icon: Icon }, i) => (
-          <button
-            key={i}
-            onClick={() => setActive(i)}
-            className={`p-2.5 rounded-xl transition-colors ${
-              active === i ? 'bg-white/10 text-white' : 'text-neutral-500'
-            }`}
-          >
-            <Icon className="w-5 h-5 stroke-[1.75]" />
-          </button>
-        ))}
+    <div className="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 z-50">
+      <div className="mx-auto max-w-sm bg-[#141416]/95 backdrop-blur-2xl border border-white/[0.08] rounded-[28px] py-2 px-3 flex items-center justify-between shadow-2xl">
 
-        <button className="mx-1 -mt-8 bg-gradient-to-b from-violet-500 to-violet-600 p-3.5 rounded-full shadow-lg shadow-violet-600/40 text-white border-[3px] border-[#0a0a0a] active:scale-95 transition-transform">
-          <RefreshCw className="w-5 h-5 stroke-[2]" />
+        {/* Tombol Home */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className={`p-3 rounded-xl transition-colors ${active === 'home' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+          title="Beranda"
+        >
+          <Home className="w-5 h-5 stroke-[1.75]" />
         </button>
 
-        {itemsRight.map(({ icon: Icon }, i) => {
-          const idx = i + 2;
-          return (
-            <button
-              key={idx}
-              onClick={() => setActive(idx)}
-              className={`p-2.5 rounded-xl transition-colors ${
-                active === idx ? 'bg-white/10 text-white' : 'text-neutral-500'
-              }`}
-            >
-              <Icon className="w-5 h-5 stroke-[1.75]" />
-            </button>
-          );
-        })}
+        {/* Tombol Template Ulasan */}
+        <button
+          onClick={() => document.getElementById('review-templates-section')?.scrollIntoView({ behavior: 'smooth' })}
+          className={`p-3 rounded-xl transition-colors ${active === 'templates' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+          title="Template Ulasan"
+        >
+          <MessageSquare className="w-5 h-5 stroke-[1.75]" />
+        </button>
+
+        {/* Tombol Tengah (Refresh) */}
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="mx-1 -mt-8 bg-gradient-to-b from-violet-500 to-violet-600 p-3.5 rounded-full shadow-lg shadow-violet-600/40 text-white border-[3px] border-[#0a0a0a] active:scale-95 transition-transform disabled:opacity-60"
+          title="Muat ulang data"
+        >
+          <RefreshCw className={`w-5 h-5 stroke-[2] ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
+
+        {/* Tombol Toko (Sekarang Berfungsi) */}
+        <button
+          onClick={() => document.getElementById('store-info-section')?.scrollIntoView({ behavior: 'smooth' })}
+          className={`p-3 rounded-xl transition-colors ${active === 'store' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+          title="Informasi Toko"
+        >
+          <Store className="w-5 h-5 stroke-[1.75]" />
+        </button>
+
+        {/* Tombol Profil (Sekarang Berfungsi) */}
+        <button
+          onClick={() => document.getElementById('profile-info-section')?.scrollIntoView({ behavior: 'smooth' })}
+          className={`p-3 rounded-xl transition-colors ${active === 'profile' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-neutral-300'}`}
+          title="Profil Merchant"
+        >
+          <User className="w-5 h-5 stroke-[1.75]" />
+        </button>
+
       </div>
     </div>
   );
