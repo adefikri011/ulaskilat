@@ -1,15 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { BarChart3, ShieldCheck, Calendar, Clock, TrendingUp, MessageSquare, Store, Home, RefreshCw, User } from 'lucide-react';
+import { BarChart3, ShieldCheck, Calendar, Clock, TrendingUp, MessageSquare, Store, User } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import NfcQrCard from '@/components/NfcQrCard';
 
 const prisma = new PrismaClient();
-
-function getTrend(current: number, prev: number) {
-  if (prev === 0) return current > 0 ? { type: 'new' as const } : null;
-  const percent = Math.round(((current - prev) / prev) * 100);
-  if (percent === 0) return { type: 'flat' as const, percent: 0 };
-  return { type: (percent > 0 ? 'up' : 'down') as 'up' | 'down', percent: Math.abs(percent) };
-}
 
 export default async function AnalyticsPage({
   params,
@@ -194,14 +188,13 @@ export default async function AnalyticsPage({
           </div>
         </div>
 
-        <div id="store-info-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-2">
-          <h2 className="text-xs font-medium text-white flex items-center gap-2">
+        <div id="store-info-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-4">
+          <h2 className="text-sm font-semibold text-white flex items-center gap-2 pb-2 border-b border-neutral-800">
             <Store className="w-4 h-4 text-violet-400" />
             Informasi Outlet / Toko
           </h2>
-          <p className="text-xs text-neutral-400">
-            Kartu NFC terhubung secara aman ke sistem pemetaan Google Maps dengan slug: <strong className="text-white">{client.slug}</strong>.
-          </p>
+
+          <NfcQrCard slug={client.slug} />
         </div>
 
         <div id="profile-info-section" className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-2">

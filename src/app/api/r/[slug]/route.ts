@@ -1,3 +1,4 @@
+// src/app/api/r/[slug]/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
@@ -32,7 +33,7 @@ export async function GET(
     const googleMapsUrl = `https://search.google.com/local/writereview?placeid=${client.googlePlaceId}`;
     return NextResponse.redirect(googleMapsUrl);
 
-  } catch (error) {
+  } catch {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

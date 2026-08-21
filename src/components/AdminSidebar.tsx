@@ -2,21 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Store, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, LogOut, ShieldAlert } from 'lucide-react';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
 
   const handleLogout = () => {
-    // Hapus cookie auth admin
     document.cookie = 'admin_auth=; path=/; max-age=0';
     window.location.href = '/admin/login';
   };
 
   return (
-    <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-6 min-h-screen">
+    <aside className="fixed top-0 left-0 w-64 h-screen bg-neutral-900 border-r border-neutral-800 flex flex-col justify-between p-6 z-40">
       <div className="space-y-6">
-        {/* Logo / Title */}
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
             <ShieldAlert className="w-4 h-4" />
@@ -27,7 +25,6 @@ export default function AdminSidebar() {
           </div>
         </div>
 
-        {/* Menu Navigation */}
         <nav className="space-y-1">
           <Link
             href="/admin/dashboard"
@@ -43,7 +40,6 @@ export default function AdminSidebar() {
         </nav>
       </div>
 
-      {/* Tombol Logout */}
       <div>
         <button
           onClick={handleLogout}
