@@ -1,50 +1,49 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const slug = url.searchParams.get('slug');
+
+    if (!slug) {
+      return NextResponse.json({ message: 'Slug wajib diisi!' }, { status: 400 });
+    }
+
+    const client = await prisma.client.findUnique({
+      where: { slug },
+      select: { id: true, name: true, slug: true, googlePlaceId: true },
+    });
+
+    if (!client) {
+      return NextResponse.json({ message: 'Toko tidak ditemukan' }, { status: 404 });
+    }
+
+    return NextResponse.json({ client });
+  } catch {
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+  }
+}
+
 export async function PUT(request: Request) {
   try {
-    const cookieHeader = request.headers.get('cookie') || '';
-    const merchantId = cookieHeader
-      .split(';')
-      .find((c) => c.trim().startsWith('merchant_auth='))
-      ?.split('=')[1];
+    const { slug, name, googlePlaceId } = await request.json();
 
-    if (!merchantId) {
-      return NextResponse.json({ message: 'Tidak terautentikasi' }, { status: 401 });
+    if (!slug || !name) {
+      return NextResponse.json({ message: 'Nama wajib diisi!' }, { status: 400 });
     }
 
-    const client = await prisma.client.findUnique({ where: { id: merchantId } });
+    const client = await prisma.client.findUnique({ where: { slug } });
     if (!client) {
-      return NextResponse.json({ message: 'Akun tidak ditemukan' }, { status: 404 });
-    }
-
-    const { name, slug, googlePlaceId, password } = await request.json();
-
-    if (!name || !slug) {
-      return NextResponse.json({ message: 'Nama dan slug wajib diisi!' }, { status: 400 });
-    }
-
-    // Cek slug unik (kecuali milik sendiri)
-    if (slug !== client.slug) {
-      const existingSlug = await prisma.client.findUnique({ where: { slug } });
-      if (existingSlug) {
-        return NextResponse.json({ message: 'Slug sudah digunakan!' }, { status: 400 });
-      }
-    }
-
-    const updateData: Record<string, string> = {
-      name,
-      slug,
-      googlePlaceId: googlePlaceId || '',
-    };
-
-    if (password && password.length >= 6) {
-      updateData.password = password;
+      return NextResponse.json({ message: 'Toko tidak ditemukan' }, { status: 404 });
     }
 
     const updated = await prisma.client.update({
-      where: { id: merchantId },
-      data: updateData,
+      where: { slug },
+      data: {
+        name,
+        googlePlaceId: googlePlaceId || '',
+      },
     });
 
     return NextResponse.json({ message: 'Berhasil disimpan!', slug: updated.slug });

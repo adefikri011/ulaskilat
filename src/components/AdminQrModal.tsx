@@ -65,14 +65,14 @@ export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
           </button>
         </div>
 
-        {/* QR 1: Untuk PEMILIK TOKO — Register & Kelola */}
+        {/* QR 1: Untuk PEMILIK TOKO — Setup Toko */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Store className="w-3.5 h-3.5 text-violet-400" />
-            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Pemilik Toko</h4>
+            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Setup Toko</h4>
           </div>
           <p className="text-[10px] text-neutral-500 leading-relaxed">
-            Tap/scan QR ini oleh <strong className="text-neutral-300">pemilik toko</strong> untuk registrasi akun pertama kali. Setelah registrasi, pemilik bisa login untuk mengelola toko dan melihat statistik.
+            <strong className="text-neutral-300">Pemilik toko</strong> tap/scan QR ini untuk mengisi data toko (Google Place ID). Setelah itu toko langsung aktif dan pelanggan bisa kasih review.
           </p>
 
           <div className="flex justify-center p-3 bg-white rounded-xl">
@@ -123,7 +123,7 @@ export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
             <h4 className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider">QR Pelanggan (Review)</h4>
           </div>
           <p className="text-[10px] text-neutral-500 leading-relaxed">
-            Tap/scan QR ini oleh <strong className="text-neutral-300">pelanggan</strong> untuk langsung ke halaman review Google Maps. QR ini aktif setelah pemilik toko selesai registrasi.
+            <strong className="text-neutral-300">Pelanggan</strong> tap/scan QR ini untuk langsung ke halaman review Google Maps. QR ini aktif setelah pemilik selesai setup data toko.
           </p>
 
           <div className="flex justify-center p-3 bg-white rounded-xl">

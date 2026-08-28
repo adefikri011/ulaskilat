@@ -23,16 +23,15 @@ export async function GET(
           googlePlaceId: '',
         },
       });
-      // Redirect ke halaman registrasi untuk melengkapi data
       return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
     }
 
-    // Jika client belum punya password, arahkan ke registrasi
-    if (!client.password) {
+    // Jika client belum isi Google Place ID, arahkan ke halaman setup
+    if (!client.googlePlaceId) {
       return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
     }
 
-    // Client sudah terdaftar, lanjut scan + redirect ke Google Maps
+    // Client sudah aktif, lanjut scan + redirect ke Google Maps
     await prisma.client.update({
       where: { id: client.id },
       data: {
