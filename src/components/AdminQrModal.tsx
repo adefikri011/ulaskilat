@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { QrCode, BarChart3, X, Copy, Check, ExternalLink, Download, Smartphone } from 'lucide-react';
+import { QrCode, X, Copy, Check, Download, Store, Users } from 'lucide-react';
 
 interface AdminQrModalProps {
   clientName: string;
@@ -10,7 +10,7 @@ interface AdminQrModalProps {
   token?: string;
 }
 
-export default function AdminQrModal({ clientName, slug, token }: AdminQrModalProps) {
+export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -33,8 +33,8 @@ export default function AdminQrModal({ clientName, slug, token }: AdminQrModalPr
   }, [isOpen]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const nfcUrl = `${origin}/api/r/${slug}`;
-  const analyticsUrl = `${origin}/analytics/${slug}${token ? `?token=${token}` : ''}`;
+  const ownerUrl = `${origin}/register?slug=${slug}`;
+  const customerUrl = `${origin}/api/r/${slug}`;
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -48,7 +48,7 @@ export default function AdminQrModal({ clientName, slug, token }: AdminQrModalPr
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl relative"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
@@ -65,100 +65,105 @@ export default function AdminQrModal({ clientName, slug, token }: AdminQrModalPr
           </button>
         </div>
 
-        {/* QR 1: URL Print untuk NFC / QR Card */}
+        {/* QR 1: Untuk PEMILIK TOKO — Register & Kelola */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Smartphone className="w-3.5 h-3.5 text-sky-400" />
-            <h4 className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider">QR / NFC untuk Dicetak</h4>
+            <Store className="w-3.5 h-3.5 text-violet-400" />
+            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Pemilik Toko</h4>
           </div>
-          <p className="text-[10px] text-neutral-500">URL ini ditulis ke kartu NFC atau dicetak sebagai QR code. Saat pelanggan tap/scan, mereka akan diarahkan ke Google Maps review.</p>
+          <p className="text-[10px] text-neutral-500 leading-relaxed">
+            Tap/scan QR ini oleh <strong className="text-neutral-300">pemilik toko</strong> untuk registrasi akun pertama kali. Setelah registrasi, pemilik bisa login untuk mengelola toko dan melihat statistik.
+          </p>
 
           <div className="flex justify-center p-3 bg-white rounded-xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(nfcUrl)}`}
-              alt={`QR NFC ${clientName}`}
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(ownerUrl)}`}
+              alt={`QR Pemilik ${clientName}`}
               className="w-36 h-36 object-contain block"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL untuk ditulis ke NFC / QR</label>
+            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL Register Pemilik</label>
             <div className="flex items-center gap-2 bg-neutral-950 p-2 rounded-xl border border-neutral-800">
               <input
                 type="text"
                 readOnly
-                value={nfcUrl}
+                value={ownerUrl}
                 className="w-full bg-transparent text-[11px] text-neutral-300 font-mono outline-none select-all truncate"
               />
               <button
                 type="button"
-                onClick={() => handleCopy(nfcUrl, 'nfc')}
-                className="flex items-center gap-1 bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors border border-sky-500/30 shrink-0 font-medium"
+                onClick={() => handleCopy(ownerUrl, 'owner')}
+                className="flex items-center gap-1 bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors border border-violet-500/30 shrink-0 font-medium"
               >
-                {copied === 'nfc' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                <span>{copied === 'nfc' ? 'Disalin' : 'Salin'}</span>
+                {copied === 'owner' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied === 'owner' ? 'Disalin' : 'Salin'}</span>
               </button>
             </div>
           </div>
 
           <a
-            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(nfcUrl)}`}
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(ownerUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            download={`QR-NFC-${slug}.png`}
+            download={`QR-Pemilik-${slug}.png`}
             className="inline-flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-white transition-colors"
           >
             <Download className="w-3 h-3" />
-            <span>Unduh QR untuk Cetak (500x500)</span>
+            <span>Unduh QR Pemilik (500x500)</span>
           </a>
         </div>
 
-        {/* QR 2: URL Analytics Dashboard */}
+        {/* QR 2: Untuk PELANGGAN — Review Google Maps */}
         <div className="space-y-3 pt-3 border-t border-neutral-800">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
-            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Akses Dashboard Analytics</h4>
+            <Users className="w-3.5 h-3.5 text-sky-400" />
+            <h4 className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider">QR Pelanggan (Review)</h4>
           </div>
-          <p className="text-[10px] text-neutral-500">QR ini untuk merchant mengakses halaman statistik scan toko mereka.</p>
+          <p className="text-[10px] text-neutral-500 leading-relaxed">
+            Tap/scan QR ini oleh <strong className="text-neutral-300">pelanggan</strong> untuk langsung ke halaman review Google Maps. QR ini aktif setelah pemilik toko selesai registrasi.
+          </p>
 
           <div className="flex justify-center p-3 bg-white rounded-xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(analyticsUrl)}`}
-              alt={`QR Analytics ${clientName}`}
-              className="w-24 h-24 object-contain block"
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(customerUrl)}`}
+              alt={`QR Pelanggan ${clientName}`}
+              className="w-36 h-36 object-contain block"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL Dashboard Merchant</label>
+            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL Review Google Maps</label>
             <div className="flex items-center gap-2 bg-neutral-950 p-2 rounded-xl border border-neutral-800">
               <input
                 type="text"
                 readOnly
-                value={analyticsUrl}
+                value={customerUrl}
                 className="w-full bg-transparent text-[11px] text-neutral-300 font-mono outline-none select-all truncate"
               />
               <button
                 type="button"
-                onClick={() => handleCopy(analyticsUrl, 'analytics')}
-                className="flex items-center gap-1 bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors border border-violet-500/30 shrink-0 font-medium"
+                onClick={() => handleCopy(customerUrl, 'customer')}
+                className="flex items-center gap-1 bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-2.5 py-1.5 rounded-lg text-[11px] transition-colors border border-sky-500/30 shrink-0 font-medium"
               >
-                {copied === 'analytics' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                <span>{copied === 'analytics' ? 'Disalin' : 'Salin'}</span>
+                {copied === 'customer' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied === 'customer' ? 'Disalin' : 'Salin'}</span>
               </button>
             </div>
           </div>
 
           <a
-            href={analyticsUrl}
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(customerUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 transition-colors font-medium"
+            download={`QR-Pelanggan-${slug}.png`}
+            className="inline-flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-white transition-colors"
           >
-            <span>Buka Dashboard</span>
-            <ExternalLink className="w-3 h-3" />
+            <Download className="w-3 h-3" />
+            <span>Unduh QR Pelanggan (500x500)</span>
           </a>
         </div>
       </div>
