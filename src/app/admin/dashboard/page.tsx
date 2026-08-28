@@ -1,11 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import AdminSidebar from '@/components/AdminSidebar';
 import AdminQrModal from '@/components/AdminQrModal';
 import { Users, Scan, TrendingUp, BarChart3 } from 'lucide-react';
-
-const prisma = new PrismaClient();
 
 export default async function AdminDashboard() {
   const cookieStore = await cookies();

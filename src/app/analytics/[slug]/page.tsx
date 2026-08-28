@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { BarChart3, ShieldCheck, Calendar, Clock, TrendingUp, MessageSquare, Store, User } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import NfcQrCard from '@/components/NfcQrCard';
-
-const prisma = new PrismaClient();
 
 export default async function AnalyticsPage({
   params,

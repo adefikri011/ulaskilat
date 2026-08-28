@@ -1,11 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { BarChart3, Clock, Calendar, TrendingUp, Store, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import NfcQrCard from '@/components/NfcQrCard';
-
-const prisma = new PrismaClient();
 
 export default async function MerchantDashboard() {
   const cookieStore = await cookies();
