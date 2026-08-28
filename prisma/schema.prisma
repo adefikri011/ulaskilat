@@ -11,9 +11,12 @@ model Client {
   id              String      @id @default(cuid())
   name            String      
   slug            String      @unique 
+  phone           String?     @unique
+  password        String?
   googlePlaceId   String      
   scanCount       Int         @default(0) 
   secretToken     String      @default(cuid()) 
+  status          String      @default("pending")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   scanLogs        ScanLog[]

@@ -12,14 +12,29 @@ export async function GET(
   const { slug } = resolvedParams;
 
   try {
-    const client = await prisma.client.findUnique({
+    let client = await prisma.client.findUnique({
       where: { slug },
     });
 
+    // Auto-register: jika slug belum ada, buat client baru (pending)
     if (!client) {
-      return new NextResponse('Toko tidak ditemukan', { status: 404 });
+      client = await prisma.client.create({
+        data: {
+          name: slug,
+          slug,
+          googlePlaceId: '',
+        },
+      });
+      // Redirect ke halaman registrasi untuk melengkapi data
+      return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
     }
 
+    // Jika client belum punya password, arahkan ke registrasi
+    if (!client.password) {
+      return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
+    }
+
+    // Client sudah terdaftar, lanjut scan + redirect ke Google Maps
     await prisma.client.update({
       where: { id: client.id },
       data: {
