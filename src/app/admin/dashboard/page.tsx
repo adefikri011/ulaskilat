@@ -1,45 +1,58 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/AdminSidebar';
 import AdminQrModal from '@/components/AdminQrModal';
-import { Users, Scan, TrendingUp, BarChart3 } from 'lucide-react';
+import AdminAddStoreModal from '@/components/AdminAddStoreModal';
+import { Users, Scan, TrendingUp, BarChart3, RefreshCw } from 'lucide-react';
 
-export default async function AdminDashboard() {
-  const cookieStore = await cookies();
-  if (cookieStore.get('admin_auth')?.value !== 'true') {
-    redirect('/admin/login');
-  }
+interface ClientData {
+  id: string;
+  name: string;
+  slug: string;
+  secretToken: string;
+  scanCount: number;
+  status: string;
+  createdAt: string;
+}
 
-  const clients = await prisma.client.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: { scanLogs: true },
-  });
+interface DailyCount {
+  label: string;
+  count: number;
+  isToday: boolean;
+}
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [dailyCounts, setDailyCounts] = useState<DailyCount[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/clients');
+      const data = await res.json();
+      if (data.clients) {
+        setClients(data.clients);
+        setDailyCounts(data.dailyCounts || []);
+      } else {
+        router.push('/admin/login');
+      }
+    } catch {
+      setLoading(false);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totalScans = clients.reduce((acc, c) => acc + c.scanCount, 0);
-
-  const now = new Date();
-  const globalDailyCounts = Array.from({ length: 7 }).map((_, i) => {
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i));
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayEnd.getDate() + 1);
-
-    let count = 0;
-    clients.forEach((client) => {
-      count += client.scanLogs.filter((log) => {
-        const d = new Date(log.createdAt);
-        return d >= dayStart && d < dayEnd;
-      }).length;
-    });
-
-    return {
-      label: dayStart.toLocaleDateString('id-ID', { weekday: 'short' }),
-      count,
-      isToday: i === 6,
-    };
-  });
-
-  const maxGlobalCount = Math.max(...globalDailyCounts.map((d) => d.count), 1);
+  const maxGlobalCount = Math.max(...dailyCounts.map((d) => d.count), 1);
 
   return (
     <div className="min-h-screen w-full bg-[#0a0a0a] text-neutral-200 font-sans">
@@ -55,6 +68,16 @@ export default async function AdminDashboard() {
               <p className="text-xs text-neutral-400 mt-1">
                 Monitoring aktivitas seluruh jaringan UlasKilat (Scan &amp; Tap NFC).
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => fetchData()}
+                className="p-2.5 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                title="Muat ulang"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <AdminAddStoreModal onCreated={fetchData} />
             </div>
           </div>
 
@@ -91,19 +114,19 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          {/* Grafik Global Tren 7 Hari Terakhir */}
+          {/* Grafik Global */}
           <div className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-medium text-white flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-violet-400" />
-                Grafik Aktivitas Global (Seluruh Toko) — 7 Hari Terakhir
+                Grafik Aktivitas Global — 7 Hari Terakhir
               </h2>
               <span className="text-[10px] font-mono text-neutral-500 bg-neutral-800/50 px-2 py-1 rounded-md">
                 Realtime Data
               </span>
             </div>
             <div className="grid grid-cols-7 gap-3 items-end h-32 pt-6 pb-1 px-2 border-b border-neutral-800/60">
-              {globalDailyCounts.map((item, index) => {
+              {dailyCounts.map((item, index) => {
                 const heightPercent = Math.max((item.count / maxGlobalCount) * 100, 12);
                 return (
                   <div key={index} className="flex flex-col items-center gap-2 h-full justify-end group">
@@ -111,10 +134,11 @@ export default async function AdminDashboard() {
                       {item.count}
                     </span>
                     <div
-                      className={`w-full rounded-t-lg transition-all duration-500 ${item.isToday
+                      className={`w-full rounded-t-lg transition-all duration-500 ${
+                        item.isToday
                           ? 'bg-gradient-to-t from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20'
                           : 'bg-neutral-800 hover:bg-neutral-700'
-                        }`}
+                      }`}
                       style={{ height: `${heightPercent}%` }}
                     />
                     <span className={`text-[11px] ${item.isToday ? 'text-violet-400 font-bold' : 'text-neutral-500'}`}>
@@ -129,7 +153,7 @@ export default async function AdminDashboard() {
               <span className="text-neutral-300 font-medium">
                 Puncak tertinggi:{' '}
                 <strong className="text-violet-400">
-                  {Math.max(...globalDailyCounts.map((d) => d.count))} interaksi
+                  {Math.max(...dailyCounts.map((d) => d.count))} interaksi
                 </strong>{' '}
                 dalam sehari
               </span>
@@ -139,8 +163,8 @@ export default async function AdminDashboard() {
           {/* Tabel Detail Toko */}
           <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 backdrop-blur-sm overflow-hidden">
             <div className="p-5 border-b border-neutral-800 flex justify-between items-center">
-              <h2 className="text-sm font-medium text-white">Daftar Toko Terdaftar</h2>
-              <span className="text-[11px] text-neutral-500">Menampilkan seluruh merchant aktif</span>
+              <h2 className="text-sm font-medium text-white">Daftar Toko</h2>
+              <span className="text-[11px] text-neutral-500">{clients.length} toko terdaftar</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[600px]">
@@ -149,15 +173,15 @@ export default async function AdminDashboard() {
                     <th className="p-4">Toko</th>
                     <th className="p-4">Slug</th>
                     <th className="p-4">Status</th>
-                    <th className="p-4 text-center">QR Analytics</th>
-                    <th className="p-4 text-right">Total Scan / Tap</th>
+                    <th className="p-4 text-center">QR Print / NFC</th>
+                    <th className="p-4 text-right">Total Scan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60 text-xs">
                   {clients.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="p-6 text-center text-neutral-500">
-                        Belum ada toko terdaftar.
+                        Belum ada toko. Klik &quot;Tambah Toko&quot; untuk membuat baru.
                       </td>
                     </tr>
                   ) : (
@@ -166,12 +190,18 @@ export default async function AdminDashboard() {
                         <td className="p-4 font-medium text-white">{c.name}</td>
                         <td className="p-4 font-mono text-neutral-400">/{c.slug}</td>
                         <td className="p-4">
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">
-                            <span className="w-1 h-1 rounded-full bg-emerald-400" /> Aktif
-                          </span>
+                          {c.status === 'active' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">
+                              <span className="w-1 h-1 rounded-full bg-emerald-400" /> Aktif
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px]">
+                              <span className="w-1 h-1 rounded-full bg-amber-400" /> Pending
+                            </span>
+                          )}
                         </td>
                         <td className="p-4 text-center">
-                         <AdminQrModal clientName={c.name} slug={c.slug} token={c.secretToken} />
+                          <AdminQrModal clientName={c.name} slug={c.slug} token={c.secretToken} />
                         </td>
                         <td className="p-4 text-right font-mono font-medium text-white">{c.scanCount}</td>
                       </tr>
