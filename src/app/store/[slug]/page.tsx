@@ -51,9 +51,9 @@ export default function StorePage({ params }: { params: { slug: string } }) {
 
   const redirectToMaps = () => {
     if (!store?.googlePlaceId) return;
-    // Gunakan URL universal yang bisa buka Google Maps app di HP
-    const mapsUrl = `https://www.google.com/maps/place/?q=place_id:${store.googlePlaceId}&review=1`;
-    window.location.href = mapsUrl;
+    // URL yang langsung buka halaman TULIS REVIEW di Google Maps
+    const reviewUrl = `https://search.google.com/local/writereview?placeid=${store.googlePlaceId}`;
+    window.location.href = reviewUrl;
   };
 
   if (loading) {
