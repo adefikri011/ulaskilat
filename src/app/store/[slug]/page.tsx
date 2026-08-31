@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, MapPin, ExternalLink, Loader2 } from 'lucide-react';
 
 interface StoreData {
@@ -9,15 +9,14 @@ interface StoreData {
   googlePlaceId: string;
 }
 
-export default function StorePage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
+export default function StorePage({ params }: { params: { slug: string } }) {
   const [store, setStore] = useState<StoreData | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`/api/store/${resolvedParams.slug}`)
+    fetch(`/api/store/${params.slug}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.store) {
@@ -31,7 +30,7 @@ export default function StorePage({ params }: { params: Promise<{ slug: string }
         setError('Gagal memuat data toko');
         setLoading(false);
       });
-  }, [resolvedParams.slug]);
+  }, [params.slug]);
 
   useEffect(() => {
     if (!store || !store.googlePlaceId || countdown <= 0) return;
