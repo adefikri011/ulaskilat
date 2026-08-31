@@ -33,8 +33,8 @@ export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
   }, [isOpen]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const ownerUrl = `${origin}/register?slug=${slug}`;
-  const customerUrl = `${origin}/api/r/${slug}`;
+  const ownerUrl = `${origin}/merchant/dashboard?slug=${slug}`;
+  const customerUrl = `${origin}/store/${slug}`;
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -65,14 +65,14 @@ export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
           </button>
         </div>
 
-        {/* QR 1: Untuk PEMILIK TOKO — Setup Toko */}
+        {/* QR 1: Untuk PEMILIK TOKO — Dashboard Toko */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Store className="w-3.5 h-3.5 text-violet-400" />
-            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Setup Toko</h4>
+            <h4 className="text-[11px] font-semibold text-violet-400 uppercase tracking-wider">QR Dashboard Toko</h4>
           </div>
           <p className="text-[10px] text-neutral-500 leading-relaxed">
-            <strong className="text-neutral-300">Pemilik toko</strong> tap/scan QR ini untuk mengisi data toko (Google Place ID). Setelah itu toko langsung aktif dan pelanggan bisa kasih review.
+            <strong className="text-neutral-300">Pemilik toko</strong> tap/scan QR ini untuk membuka dashboard toko. Dari situ bisa lihat statistik scan, ubah Google Place ID, dan kelola data toko.
           </p>
 
           <div className="flex justify-center p-3 bg-white rounded-xl">
@@ -85,7 +85,7 @@ export default function AdminQrModal({ clientName, slug }: AdminQrModalProps) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL Register Pemilik</label>
+            <label className="text-[10px] uppercase font-mono tracking-wider text-neutral-500">URL Dashboard Pemilik</label>
             <div className="flex items-center gap-2 bg-neutral-950 p-2 rounded-xl border border-neutral-800">
               <input
                 type="text"

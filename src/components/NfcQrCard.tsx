@@ -9,10 +9,10 @@ interface NfcQrCardProps {
 
 export default function NfcQrCard({ slug }: NfcQrCardProps) {
   const [copied, setCopied] = useState(false);
-  const nfcUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/r/${slug}` : `/api/r/${slug}`;
+  const storeUrl = typeof window !== 'undefined' ? `${window.location.origin}/store/${slug}` : `/store/${slug}`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(nfcUrl);
+    navigator.clipboard.writeText(storeUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -31,7 +31,7 @@ export default function NfcQrCard({ slug }: NfcQrCardProps) {
       </div>
 
       <p className="text-xs text-neutral-400 leading-relaxed">
-        QR / NFC ini untuk <strong className="text-neutral-300">pelanggan</strong>. Saat pelanggan tap/scan, mereka akan langsung diarahkan ke halaman review Google Maps toko kamu.
+        QR / NFC ini untuk <strong className="text-neutral-300">pelanggan</strong>. Saat pelanggan tap/scan, mereka akan melihat halaman toko lalu diarahkan ke Google Maps untuk review.
       </p>
 
       {/* Kotak URL NFC */}
@@ -42,7 +42,7 @@ export default function NfcQrCard({ slug }: NfcQrCardProps) {
           <input
             type="text"
             readOnly
-            value={nfcUrl}
+            value={storeUrl}
             className="w-full bg-transparent text-xs text-neutral-300 font-mono outline-none select-all"
           />
           <button
@@ -60,7 +60,7 @@ export default function NfcQrCard({ slug }: NfcQrCardProps) {
         <div className="bg-white p-2 rounded-lg shrink-0 border border-neutral-200">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(nfcUrl)}`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(storeUrl)}`}
             alt="QR Code Pelanggan"
             className="w-20 h-20 sm:w-24 sm:h-24 object-contain block"
           />
@@ -68,10 +68,10 @@ export default function NfcQrCard({ slug }: NfcQrCardProps) {
         <div className="space-y-1.5 text-center sm:text-left flex-1 min-w-0">
           <h3 className="text-xs font-medium text-white">QR Code untuk Pelanggan</h3>
           <p className="text-[11px] text-neutral-400 leading-relaxed">
-            Scan QR ini mengarah langsung ke halaman review Google Maps toko kamu. Pasang QR ini di kasir atau meja toko.
+            Scan QR ini menampilkan halaman toko lalu otomatis buka Google Maps untuk review. Pasang di kasir atau meja toko.
           </p>
           <a
-            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(nfcUrl)}`}
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(storeUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 transition-colors pt-0.5"
@@ -84,7 +84,7 @@ export default function NfcQrCard({ slug }: NfcQrCardProps) {
 
       {/* Footer Info Slug */}
       <p className="text-[11px] text-neutral-400 pt-1">
-        QR ini terhubung ke halaman review Google Maps toko: <span className="font-semibold text-white">{slug}</span>.
+        QR ini terhubung ke toko: <span className="font-semibold text-white">{slug}</span>.
       </p>
     </div>
   );

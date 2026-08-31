@@ -23,15 +23,15 @@ export async function GET(
           googlePlaceId: '',
         },
       });
-      return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
+      return NextResponse.redirect(new URL(`/merchant/dashboard?slug=${slug}`, request.url));
     }
 
-    // Jika client belum isi Google Place ID, arahkan ke halaman setup
+    // Jika client belum isi Google Place ID, arahkan ke dashboard untuk setup
     if (!client.googlePlaceId) {
-      return NextResponse.redirect(new URL(`/register?slug=${slug}`, request.url));
+      return NextResponse.redirect(new URL(`/merchant/dashboard?slug=${slug}`, request.url));
     }
 
-    // Client sudah aktif, lanjut scan + redirect ke Google Maps
+    // Client sudah aktif, lanjut scan + redirect ke landing page
     await prisma.client.update({
       where: { id: client.id },
       data: {
@@ -42,8 +42,7 @@ export async function GET(
       },
     });
 
-    const googleMapsUrl = `https://search.google.com/local/writereview?placeid=${client.googlePlaceId}`;
-    return NextResponse.redirect(googleMapsUrl);
+    return NextResponse.redirect(new URL(`/store/${slug}`, request.url));
 
   } catch {
     return new NextResponse('Internal Server Error', { status: 500 });

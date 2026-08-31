@@ -7,7 +7,6 @@ export default function AdminLogin() {
   const router = useRouter();
 
   const handleLogin = () => {
-    // Password rahasia kamu (ubah sesuai keinginanmu)
     if (password === 'admin123123123') {
       document.cookie = 'admin_auth=true; path=/';
       router.push('/admin/dashboard');
